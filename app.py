@@ -25,3 +25,12 @@ db.init_app(app=app)
 #flask db init - to create a new migration
 #flask db migrate - autogenerates new migration script in the migration folder
 #flask db upgrade head - get the latest changes
+
+
+# app operations
+# fetch all data from the db and return as JSON
+
+
+@app.get("/customers")
+def get_all_customers():
+    pass
