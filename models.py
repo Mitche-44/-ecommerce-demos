@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from datetime import datetime
+from sqlalchemy_serializer import SerializerMixin
 
 # create the metadata instance
 # metadata holds all the information about our table definitions, foreign keys, indexes, columns etc
@@ -10,7 +11,7 @@ metadata = MetaData()
 db = SQLAlchemy(metadata=metadata)
 
 
-class Customer(db.Model):
+class Customer(db.Model, SerializerMixin):
     __tablename__ = "customers"
 
     # table columns
@@ -23,10 +24,11 @@ class Customer(db.Model):
     age = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime(), default=datetime.now())
 
-def __repr__(self):
+    def __repr__(self):
         return f"<{self.first_name} {self.last_name}>"
 
 
 # products
 # orders
 # order_items
+# serialization with relationships

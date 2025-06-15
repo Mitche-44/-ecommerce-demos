@@ -1,4 +1,4 @@
-from flask import Flask, make_response
+from flask import Flask, make_response,request
 from flask_migrate import Migrate
 
 from models import db, Customer
@@ -107,4 +107,99 @@ def get_one_customer(id):
 
 
 # post
+
+@app.post("/customers")
+def add_customer():
+    try:
+        data = request.get_json()
+
+        phone = data.get("phone")
+
+        # Check for duplicate phone number
+        existing = Customer.query.filter_by(phone=phone).first()
+        if existing:
+            return make_response({
+                "code": 409,
+                "message": "Phone number already exists. Please use a different one."
+            }, 409)
+
+        customer = Customer(
+            first_name=data.get("first_name"),
+            last_name=data.get("last_name"),
+            email=data.get("email"),
+            phone=phone,
+            gender=data.get("gender"),
+            age=data.get("age"),
+        )
+
+        db.session.add(customer)
+        db.session.commit()
+
+        return make_response({
+            "code": 201,
+            "message": "Customer account created successfully"
+        }, 201)
+
+    except Exception as e:
+        return make_response({
+            "code": 400,
+            "message": "An error occurred",
+            "error": str(e)
+        }, 400)
+
+# perfom patch operations
+# partial updates -> write the logic to account for this
+
+@app.patch("/customers/<int:id>")
+def update_customer(id):
+    customer = Customer.query.filter_by(id=id).first()
+    if not customer:
+        return make_response({"message": "Customer not found"}, 404)
+
+    data = request.get_json()
+
+    # Update only provided fields
+    if "first_name" in data:
+        customer.first_name = data["first_name"]
+    if "last_name" in data:
+        customer.last_name = data["last_name"]
+    if "email" in data:
+        customer.email = data["email"]
+    if "phone" in data:
+        customer.phone = data["phone"]
+    if "gender" in data:
+        customer.gender = data["gender"]
+    if "age" in data:
+        customer.age = data["age"]
+
+    db.session.commit()
+
+    return make_response({
+        "message": "Customer updated successfully",
+        "customer": {
+            "id": customer.id,
+            "first_name": customer.first_name,
+            "last_name": customer.last_name,
+            "email": customer.email,
+            "phone": customer.phone,
+            "gender": customer.gender,
+            "age": customer.age
+        }
+    }, 200)
+
+
+# delete operations
+
+@app.delete("/customers/<int:id>")
+def delete_customer(id):
+    customer = Customer.query.filter_by(id=id).first()
+    if not customer:
+        return make_response({"message": "Customer not found"}, 404)
+
+    db.session.delete(customer)
+    db.session.commit()
+
+    return make_response({"message": f"Customer with ID {id} deleted successfully."}, 200)
+
+
 # serialization to_dict()
